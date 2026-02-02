@@ -117,7 +117,7 @@ Esta división permite aplicar el principio de "divide y vencerás". Cada módul
 | **Orientada a Objetos** | Clases y Objetos | Unión de datos y lógica. |
 
 
-```
+
 
 
 
