@@ -172,29 +172,104 @@ En resumen, la ocultación protege la integridad del objeto frente a manipulacio
 
 
 
-## 9. ¿Qué son los métodos "getter" y "setter" en los lenguajes orientados a objetos?
+#### 9. ¿Qué son los métodos "getter" y "setter" en los lenguajes orientados a objetos?
 
-### Respuesta
+Los métodos *getter* y *setter* son funciones que permiten acceder y modificar los atributos privados de una clase respetando el principio de encapsulación. En lenguajes orientados a objetos como Java, se acostumbra a declarar los atributos como `private` para impedir que el código externo los manipule directamente. De este modo, se obliga a que cualquier lectura o cambio del valor pase por métodos controlados, lo que permite validar datos, mantener coherencia interna y evitar estados incorrectos del objeto.
+
+Un *getter* es un método cuya única responsabilidad es **devolver el valor** de un atributo privado. Suele seguir la convención `getNombreAtributo()`. Por ejemplo, si una clase tiene un atributo `private int edad;`, el getter sería:
+
+```java
+public int getEdad() {
+    return edad;
+}
+```
+
+Por su parte, un *setter* es un método que **asigna un nuevo valor** a un atributo privado. Su nombre habitual es `setNombreAtributo(tipo valor)`. Este método puede incluir comprobaciones antes de aceptar el cambio, lo que añade una capa de seguridad y control. Siguiendo el ejemplo anterior:
+
+```java
+public void setEdad(int edad) {
+    if (edad >= 0) {
+        this.edad = edad;
+    }
+}
+```
+
+En conjunto, getters y setters permiten que el objeto mantenga su integridad interna, ya que ningún código externo puede alterar directamente sus datos sin pasar por estas funciones. Esto contrasta con C/C++ sin orientación a objetos, donde normalmente se accede a las variables de forma directa. En Java, este mecanismo es fundamental para aplicar correctamente la encapsulación y construir clases más robustas y fáciles de mantener.
 
 
-## 10. Cuando nos referimos a que la ocultación de información mejora la "seguridad" del programa, ¿nos referimos a que no pueda ser "hackeado"?
 
-### Respuesta
+#### 10. Cuando nos referimos a que la ocultación de información mejora la "seguridad" del programa, ¿nos referimos a que no pueda ser "hackeado"?
+
+No, en este contexto la palabra “seguridad” no se refiere a evitar que un programa sea hackeado. Cuando en programación orientada a objetos se habla de que la ocultación de información mejora la seguridad, se está describiendo una **seguridad interna del diseño**, no una seguridad informática frente a ataques externos. El objetivo es impedir que otras partes del código modifiquen directamente los datos internos de un objeto, lo que reduce errores, inconsistencias y comportamientos inesperados.
+
+La encapsulación actúa como una barrera que protege el estado interno del objeto frente a usos incorrectos. Al obligar a acceder a los atributos mediante métodos controlados (getters y setters), se puede validar la información, restringir valores inválidos y mantener la coherencia del objeto. Esto evita que el programa entre en estados imposibles o dañinos debido a un mal uso del código, algo especialmente importante en sistemas grandes donde muchas partes interactúan entre sí.
+
+Por tanto, la “seguridad” mencionada es más bien una **seguridad estructural o lógica**, que ayuda a que el programa sea más robusto, mantenible y menos propenso a fallos. No tiene relación directa con la protección frente a ataques externos, cifrado, vulnerabilidades o técnicas de hacking, que pertenecen a un ámbito completamente distinto dentro de la informática.
 
 
-## 11. ¿Qué diferencia hay entre **miembro de instancia** y **miembro de clase**? ¿Los miembros de clase también se pueden ocultar?
 
-### Respuesta
+#### 11. ¿Qué diferencia hay entre **miembro de instancia** y **miembro de clase**? ¿Los miembros de clase también se pueden ocultar?
+
+Un **miembro de instancia** es aquel que pertenece a cada objeto creado a partir de una clase. Esto significa que cada instancia mantiene su propia copia independiente de ese atributo o método, y su valor puede variar entre objetos distintos. En Java, los miembros de instancia se crean cuando se construye un objeto con `new`, y desaparecen cuando ese objeto deja de existir. Este comportamiento se asemeja a tener varias estructuras en C, cada una con sus propios campos, pero con la diferencia de que en Java se trabaja dentro del paradigma orientado a objetos.
+
+En cambio, un **miembro de clase** (también llamado *estático* o `static`) pertenece a la clase en sí misma, no a cada objeto. Solo existe una única copia compartida por todas las instancias. Esto resulta útil para valores comunes, contadores globales o utilidades que no dependen del estado particular de un objeto. En términos conceptuales, sería similar a una variable global en C, pero encapsulada dentro de una clase y con un ámbito más controlado.
+
+Respecto a la ocultación, los miembros de clase **también pueden ocultarse** utilizando modificadores de acceso como `private`. El hecho de que sean estáticos no impide aplicar encapsulación. De hecho, es habitual declarar miembros estáticos como privados y proporcionar métodos públicos estáticos para acceder a ellos, manteniendo así el control sobre su uso. Esto permite que incluso los elementos compartidos sigan las mismas reglas de protección y consistencia que los atributos de instancia.
+
+En conjunto, la diferencia clave radica en si el miembro pertenece a cada objeto o a la clase como entidad única. Sin embargo, ambos tipos pueden encapsularse y gestionarse mediante los mismos mecanismos de visibilidad, lo que refuerza la coherencia del diseño orientado a objetos.
+
 
 
 ## 12. Brevemente: ¿Tiene sentido que los constructores sean privados?
 
-### Respuesta
+Sí, tiene sentido en ciertos diseños que los constructores sean privados. Un constructor privado impide que el código externo cree instancias libremente, lo que permite controlar completamente cómo y cuándo se generan los objetos. Esta técnica se utiliza cuando no interesa que cada parte del programa pueda crear nuevas instancias sin restricciones, ya sea por motivos de coherencia interna o por la necesidad de limitar el número de objetos existentes.
+
+Un caso típico es el **patrón Singleton**, donde solo debe existir una única instancia de la clase. Al declarar el constructor como privado, se evita que otros componentes creen nuevas instancias, y se obliga a usar un método controlado que devuelve siempre la misma. También es útil en clases que solo ofrecen métodos estáticos o en aquellas donde la creación de objetos requiere pasos adicionales que no deben quedar expuestos al exterior.
+
+En resumen, aunque no es lo más habitual en clases comunes, los constructores privados tienen un propósito claro: restringir la creación de objetos para mantener un control estricto sobre el ciclo de vida y la cantidad de instancias. Esto forma parte de las técnicas de encapsulación que permiten diseñar sistemas más robustos y predecibles.
 
 
-## 13. ¿Cómo se indican los **miembros de clase** en Java? Pon un ejemplo, en la clase `Punto` definida anteriormente, para que incluya miembros de clase que permitan saber cuáles son los valores `x` e `y` máximos que se han establecido en todos los puntos que se hayan creado hasta el momento.
 
-### Respuesta
+#### 13. ¿Cómo se indican los **miembros de clase** en Java? Pon un ejemplo, en la clase `Punto` definida anteriormente, para que incluya miembros de clase que permitan saber cuáles son los valores `x` e `y` máximos que se han establecido en todos los puntos que se hayan creado hasta el momento.
+
+En Java, los **miembros de clase** se indican utilizando la palabra clave `static`. Esto hace que el atributo o método pertenezca a la clase en sí y no a cada objeto individual. De este modo, todas las instancias comparten el mismo valor, lo que resulta útil cuando se necesita almacenar información común o llevar un registro global. La sintaxis es la misma que para cualquier miembro, simplemente añadiendo el modificador `static` delante del tipo.
+
+Para ilustrarlo, puede añadirse a la clase `Punto` dos atributos estáticos que registren los valores máximos de `x` e `y` que hayan tenido todos los puntos creados. Cada vez que se construya un nuevo punto, el constructor puede comparar sus coordenadas con los valores almacenados y actualizarlos si es necesario. Así, se mantiene un seguimiento global sin necesidad de estructuras externas.
+
+Un ejemplo posible sería:
+
+```java
+public class Punto {
+    private int x;
+    private int y;
+
+    private static int maxX = Integer.MIN_VALUE;
+    private static int maxY = Integer.MIN_VALUE;
+
+    public Punto(int x, int y) {
+        this.x = x;
+        this.y = y;
+
+        if (x > maxX) {
+            maxX = x;
+        }
+        if (y > maxY) {
+            maxY = y;
+        }
+    }
+
+    public static int getMaxX() {
+        return maxX;
+    }
+
+    public static int getMaxY() {
+        return maxY;
+    }
+}
+```
+
+En este diseño, `maxX` y `maxY` son miembros de clase, por lo que no pertenecen a ningún punto concreto, sino a la clase `Punto` como entidad única. Además, pueden encapsularse igual que cualquier otro atributo, utilizando `private` y proporcionando getters estáticos para acceder a ellos de forma controlada. Esto demuestra que los miembros de clase también pueden ocultarse y gestionarse mediante los mismos mecanismos de encapsulación que los miembros de instancia.
+
 
 
 ## 14. Como sería un método factoría dentro de la clase `Punto` para construir un `Punto` a partir de dos coordenadas, pero que las redondee al entero más cercano. Escribe sólo el código del método, no toda la clase ¿Has usado `static`? 
