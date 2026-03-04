@@ -123,7 +123,6 @@ También es posible aplicar estos modificadores a los **constructores**. Un cons
 
 Es importante notar que estos modificadores **no pueden aplicarse a las variables locales** (aquellas definidas dentro de un método). En C, una variable dentro de una función tiene un ámbito limitado a esa función, y en Java ocurre lo mismo: su visibilidad está intrínsecamente restringida al bloque de código donde fue declarada, por lo que el uso de `public` o `private` en ese contexto resultaría en un error de compilación.
 
-¿Te gustaría que exploráramos qué sucede cuando no se pone ningún modificador, el llamado acceso por defecto o "package-private"?
 
 
 #### 7. En POO, la visibilidad puede ser pública o privada, pero ¿existen más tipos de visibilidad? ¿Qué ocurre en Java? ¿Y en otros lenguajes?
@@ -136,7 +135,6 @@ Por otro lado, Java tiene el nivel de acceso **por defecto** (conocido como *pac
 
 En **otros lenguajes**, los conceptos son similares pero la terminología y el comportamiento varían. En **C++**, los niveles son idénticos en nombre (`public`, `private`, `protected`), pero existe el concepto de "clases amigas" (`friend`), que pueden saltarse las restricciones de acceso. Otros lenguajes modernos como **Swift** introducen niveles aún más granulares, como `fileprivate` (visible solo dentro del mismo archivo físico) o `internal` (visible en todo el módulo). Esta diversidad demuestra que la gestión de la visibilidad es una pieza clave de la arquitectura de software, permitiendo un equilibrio entre seguridad y flexibilidad.
 
-¿Desea que profundicemos en algún escenario donde el acceso por defecto de Java sea preferible al uso de `public` o `private`?
 
 
 #### 8. Responde: Los miembros de instancia privados de un objeto están ocultos para (a) otras clases o (b) otras instancias, aunque sean de la misma clase. Pon un ejemplo añadiendo un método `calcularDistanciaAPunto(Punto otro)` y explica la respuesta.
@@ -272,51 +270,549 @@ En este diseño, `maxX` y `maxY` son miembros de clase, por lo que no pertenecen
 
 
 
-## 14. Como sería un método factoría dentro de la clase `Punto` para construir un `Punto` a partir de dos coordenadas, pero que las redondee al entero más cercano. Escribe sólo el código del método, no toda la clase ¿Has usado `static`? 
+##### 14. Como sería un método factoría dentro de la clase `Punto` para construir un `Punto` a partir de dos coordenadas, pero que las redondee al entero más cercano. Escribe sólo el código del método, no toda la clase ¿Has usado `static`? 
 
-### Respuesta
+Para crear un método factoría en Java que devuelva una instancia de la propia clase, es imprescindible utilizar el modificador **`static`**.
 
+En Java, un método estático pertenece a la clase y no a una instancia específica, lo que permite llamarlo para crear objetos sin necesidad de tener un objeto previo. Además, para redondear las coordenadas de tipo `double` al entero más cercano, se utiliza habitualmente `Math.round()`, realizando un *cast* a `int` o `long` según el tipo de los atributos de tu clase.
 
-## 15. Cambia la implementación de `Punto`. En vez de dos `double`, emplea un array interno de dos posiciones, intentando no modificar la interfaz pública de la clase.
+###### Código del método factoría
 
-### Respuesta
+Supuniendo que tus atributos internos son de tipo `int`:
 
+```java
+public static Punto crearPuntoRedondeado(double x, double y) {
+    int xRedondeado = (int) Math.round(x);
+    int yRedondeado = (int) Math.round(y);
+    return new Punto(xRedondeado, yRedondeado);
+}
 
-## 16. Si un atributo va a tener un método "getter" y "setter" públicos, ¿no es mejor declararlo público? ¿Cuál es la convención más habitual sobre los atributos, que sean públicos o privados? ¿Tiene esto algo que ver con las "invariantes de clase"?
+```
 
-### Respuesta
+---
 
+###### ¿Por qué se usa `static`?
 
-## 17. ¿Qué significa que una clase sea **inmutable**? ¿qué es un método modificador? ¿Un método modificador es siempre un "setter"? ¿Tiene ventajas que una clase sea inmutable?
+He usado **`static`** por las siguientes razones técnicas:
 
-### Respuesta
-
-
-## 18. ¿Es recomendable incluir métodos "setter" siempre y como convención?
-
-### Respuesta
-
-
-## 19. ¿La clase `String` en Java es mutable o inmutable? ¿Qué ocurre al concatenar dos cadenas? ¿Qué debemos hacer si vamos a hacer una operación que implique concatenar muchas veces para construir paso a paso una cadena muy larga?
-
-### Respuesta
-
-
-## 20. En POO ¿Cómo se comparan objetos de una misma clase? ¿Por su contenido o por su identidad? ¿Qué es el método equals en Java? ¿Qué hace por defecto? ¿Cómo se deben comparar dos cadenas en Java? 
-
-### Respuesta
+* **Punto de entrada:** Al ser un método de fabricación, su objetivo es construir el objeto. Si no fuera estático, tendrías el problema del "huevo y la gallina": necesitarías un objeto `Punto` ya existente para poder llamar al método que crea un `Punto`.
+* **Encapsulamiento de la lógica:** Permite que la lógica de redondeo ocurra antes de la invocación del constructor, manteniendo el constructor de la clase simple y directo.
+* **Semántica:** En Java, los métodos factoría (como `List.of()` o `Optional.of()`) son siempre estáticos por definición, ya que actúan como constructores con nombre.
 
 
-## 21. ¿Qué son las clases "wrapper" en un lenguaje de programación orientado a objetos? ¿Cómo se hace? ¿Es un proceso automático? ¿Qué ventajas tienen? ¿Todos los lenguajes orientados a objetos tienen tipos primitivos y necesitan wrappers? 
 
-### Respuesta
+##### 15. Cambia la implementación de `Punto`. En vez de dos `double`, emplea un array interno de dos posiciones, intentando no modificar la interfaz pública de la clase.
+
+Para adaptar la clase a un array interno sin cambiar la interfaz pública (los métodos que el mundo exterior ve), simplemente cambiamos la declaración del atributo y ajustamos el constructor y los métodos para que accedan a los índices `0` (para X) y `1` (para Y).
+
+Aquí tienes el código del método factoría adaptado a esta nueva estructura interna:
+
+```java
+public static Punto crearPuntoRedondeado(double x, double y) {
+    // Redondeamos los valores antes de pasarlos al constructor
+    int xRedondeado = (int) Math.round(x);
+    int yRedondeado = (int) Math.round(y);
+    
+    // Suponiendo que tu constructor ahora recibe los dos int y los guarda en el array
+    return new Punto(xRedondeado, yRedondeado);
+}
+
+```
+
+Y para que entiendas cómo quedaría la "cocina" interna de la clase (aunque solo pediste el método), la estructura sería algo así:
+
+```java
+public class Punto {
+    // Atributo interno: array de 2 posiciones
+    private int[] coordenadas = new int[2];
+
+    // Constructor que mantiene la interfaz de recibir dos enteros
+    public Punto(int x, int y) {
+        this.coordenadas[0] = x;
+        this.coordenadas[1] = y;
+    }
+
+    // Métodos de acceso (getters) que ocultan el array al usuario
+    public int getX() {
+        return coordenadas[0];
+    }
+
+    public int getY() {
+        return coordenadas[1];
+    }
+}
+
+```
+
+###### Notas para tus apuntes de C++ a Java:
+
+1. **Encapsulamiento**: Al usar un array privado y métodos públicos `getX()`/`getY()`, estás aplicando el principio de ocultación de información. El usuario de la clase no sabe (ni le importa) si usas dos variables sueltas o un array.
+2. **Inicialización de arrays**: A diferencia de C++, donde un array en el stack puede contener basura, en Java los arrays se inicializan por defecto a cero (o `null` si son objetos) al usar `new`.
+3. **Uso de `static**`: El método sigue siendo `static` porque su función es "fabricar" la instancia; no depende de un estado previo del objeto, sino de los parámetros que recibe.
 
 
-## 22. ¿En POO qué es un **tipo de dato enumerado**? ¿En Java, un tipo de dato enumerado es una clase? ¿Qué ventajas tienen en términos de encapsulación los enumerados en Java?
+##### 16. Si un atributo va a tener un método "getter" y "setter" públicos, ¿no es mejor declararlo público? ¿Cuál es la convención más habitual sobre los atributos, que sean públicos o privados? ¿Tiene esto algo que ver con las "invariantes de clase"?
+Esta es una de las dudas más comunes al saltar de C++ (donde a veces se es más laxo con las `struct`) a Java, donde la orientación a objetos es más estricta.
 
-### Respuesta
+###### ¿Público o Privado?
+
+La respuesta corta es: **No, nunca es mejor declararlo público**, aunque tengas un getter y un setter que parezcan "no hacer nada".
+
+La convención más habitual en Java (y el estándar de la industria) es que **todos los atributos deben ser `private**`. Esto se conoce como **encapsulamiento**.
+
+| Característica | Atributo Público | Getter / Setter (Atributo Privado) |
+| --- | --- | --- |
+| **Control** | Cualquiera puede cambiar el valor sin que la clase se entere. | La clase puede validar el dato antes de asignarlo. |
+| **Abstracción** | Si cambias un `int` por un `long`, rompes todo el código que use la clase. | Puedes cambiar la implementación interna sin cambiar la firma del método. |
+| **Depuración** | Es imposible poner un *breakpoint* para saber quién cambió una variable. | Puedes poner un *breakpoint* en el setter. |
+
+---
+
+###### Relación con las "Invariantes de Clase"
+
+Aquí es donde reside la verdadera importancia del encapsulamiento. Una **invariante de clase** es una condición que debe ser verdadera durante toda la vida de un objeto.
+
+Si tus atributos son públicos, la clase **no puede garantizar sus invariantes**, porque cualquier código externo puede violarlas.
+
+**Ejemplo con tu clase `Punto`:**
+Imagina que una invariante de tu clase es que las coordenadas no pueden ser negativas (por ejemplo, porque representan píxeles en pantalla).
+
+* **Si el atributo es público:** Alguien puede hacer `miPunto.coordenadas[0] = -500;`. La clase ha perdido su integridad.
+* **Si usas un setter:** Puedes proteger la invariante.
+
+```java
+public void setX(int x) {
+    if (x >= 0) {
+        this.coordenadas[0] = x;
+    } else {
+        // Lanzar una excepción o ignorar el cambio para mantener la invariante
+        throw new IllegalArgumentException("La coordenada X no puede ser negativa");
+    }
+}
+
+```
+
+Al mantener los atributos privados, el objeto es el **único responsable** de mantener su estado consistente. Esto facilita enormemente el mantenimiento de software a gran escala.
+
+###### El caso del array interno
+
+En tu caso anterior, al usar un array `private int[] coordenadas`, si lo hubieras puesto público, cualquier programador despistado podría haber hecho `punto.coordenadas = new int[10];` o `punto.coordenadas = null;`. Al ser privado, tú aseguras que ese array siempre tendrá exactamente dos posiciones y nunca será nulo.
 
 
-## 23. Crea un tipo enumerado en Java que se llame `Mes`, con doce posibles instancias y que además proporcione métodos para obtener cuántos días tiene ese mes, el ordinal de ese mes en el año (1-12), empleando atributos privados y constructores del tipo enumerado. Añade además cuatro métodos para devolver si ese mes tiene algunos días de invierno, primavera, verano u otoño, indicando con un booleano el hemisferio (norte o sur, parámetro `enHemisferioNorte`). Es decir: `esDePrimavera(boolean esHemisferioNorte)`, `esDeVerano(boolean esHemisferioNorte)`, `esDeOtoño(boolean esHemisferioNorte)`, `esDeInvierno(boolean esHemisferioNorte)`
 
-### Respuesta
+
+#### 17. ¿Qué significa que una clase sea **inmutable**? ¿qué es un método modificador? ¿Un método modificador es siempre un "setter"? ¿Tiene ventajas que una clase sea inmutable?
+
+En Java, el concepto de inmutabilidad es un pilar del diseño de software robusto, especialmente cuando pasas de C++ donde la gestión de memoria y punteros suele ser más manual.
+
+###### ¿Qué significa que una clase sea inmutable?
+
+Una clase es **inmutable** cuando su estado (sus atributos) no puede ser modificado después de que el objeto ha sido creado. Una vez que invocas el constructor o el método factoría, ese objeto morirá con los mismos valores con los que nació.
+
+Para lograr esto en Java, se suelen seguir estas reglas:
+
+1. Declarar todos los atributos como `private` y `final`.
+2. No proporcionar métodos que modifiquen los atributos.
+3. Asegurar que la clase no pueda ser heredada (usando la palabra reservada `final` en la declaración de la clase).
+4. Si un atributo es una referencia a otro objeto mutable (como un array), no devolver la referencia directa, sino una copia.
+
+###### ¿Qué es un método modificador?
+
+Un **método modificador** (también llamado *mutator*) es cualquier método que cambia el estado interno del objeto.
+
+> **Diferencia clave:** En una clase inmutable, **no existen métodos modificadores**.
+
+###### ¿Un método modificador es siempre un "setter"?
+
+**No.** Aunque el "setter" estándar (`setX(int x)`) es el ejemplo más obvio, cualquier método que altere los datos internos es un modificador. Por ejemplo:
+
+* Un método `desplazar(int deltaX, int deltaY)` que sume valores a tus coordenadas actuales sería un modificador.
+* Un método `limpiar()` que ponga las coordenadas a cero también lo sería.
+
+En una clase **inmutable**, si quieres "desplazar" un punto, el método no modificaría el objeto actual, sino que **devolvería un objeto nuevo** con los nuevos valores:
+
+```java
+// Versión inmutable de desplazar
+public Punto desplazar(int dx, int dy) {
+    return new Punto(this.coordenadas[0] + dx, this.coordenadas[1] + dy);
+}
+
+```
+
+###### Ventajas de las clases inmutables
+
+Diseñar clases inmutables (como `String` o `Integer` en Java) ofrece beneficios críticos:
+
+1. **Thread-safety (Seguridad en hilos):** Al no poder cambiar, varios hilos pueden leer el mismo objeto simultáneamente sin riesgo de corrupción de datos. No necesitas *mutex* ni bloqueos.
+2. **Seguridad y Robustez:** Puedes pasar el objeto a cualquier método externo con la total certeza de que no lo van a modificar "por la espalda".
+3. **Simplicidad de uso como llaves:** Son candidatos perfectos para ser usados en colecciones como `HashMap` o `HashSet`, ya que su valor (y por tanto su `hashCode`) nunca cambiará.
+4. **Invariantes garantizadas:** Como el estado solo se establece en el constructor, si los datos son válidos al crear el objeto, serán válidos para siempre.
+
+¿Te gustaría que transformáramos tu clase `Punto` actual para que sea totalmente inmutable siguiendo los estándares de Java?
+
+
+##### 18. ¿Es recomendable incluir métodos "setter" siempre y como convención?
+
+La respuesta corta es **no**. Aunque en muchos tutoriales básicos de Java parece que los "getters" y "setters" son obligatorios, seguirlos a ciegas es una mala práctica de diseño.
+
+Aquí tienes los argumentos para tus apuntes:
+
+###### 1. El principio de "Mínimo Privilegio"
+
+En ingeniería de software, solo debes dar los permisos estrictamente necesarios. Si un atributo no necesita ser cambiado después de la creación del objeto, **no le pongas un setter**. Al poner un setter por defecto, estás invitando a otros programadores (o a ti mismo en el futuro) a modificar el estado del objeto de forma innecesaria, aumentando la complejidad y los posibles errores.
+
+###### 2. Rompimiento del Encapsulamiento
+
+Si una clase tiene setters para todos sus atributos, en la práctica estás exponiendo sus tripas casi tanto como si los atributos fueran públicos.
+
+* **El problema:** El código que usa tu clase empieza a contener la lógica que debería estar *dentro* de la clase.
+* **La solución:** En lugar de `setX(10)` y `setY(20)`, quizás es mejor un método `trasladar(10, 20)` o `centrarEnPantalla()`. Esto se conoce como **"Tell, Don't Ask"** (Dile al objeto qué hacer, no le pidas sus datos para calcularlo tú fuera).
+
+###### 3. Mutabilidad innecesaria
+
+Como vimos en la pregunta anterior, los objetos inmutables son más seguros. Si pones setters, conviertes automáticamente la clase en **mutable**. Esto significa que:
+
+* No puedes compartir el objeto entre hilos de forma segura sin bloqueos.
+* No puedes estar seguro de que el objeto mantenga su validez después de pasarlo como argumento a una función.
+
+---
+
+###### ¿Cuándo SÍ incluirlos?
+
+Existen escenarios específicos donde los setters son la norma:
+
+* **JavaBeans / POJOs (Plain Old Java Objects):** Muchos frameworks de Java (como Hibernate para bases de datos o Jackson para JSON) requieren constructores vacíos y métodos setter para "inyectar" los datos automáticamente.
+* **Configuraciones:** Objetos que actúan como "ajustes" donde es natural cambiar un parámetro específico en tiempo de ejecución.
+
+###### Resumen para PROII
+
+| Escenario | Recomendación |
+| --- | --- |
+| **Clase de lógica/negocio** | **Evitarlos.** Priorizar constructores completos y métodos que representen acciones reales. |
+| **Entidades de datos (DTOs)** | **Usarlos con moderación** o solo si el framework lo exige. |
+| **Constantes/Valores** | **Prohibidos.** La clase debe ser inmutable. |
+
+
+
+##### 19. ¿La clase `String` en Java es mutable o inmutable? ¿Qué ocurre al concatenar dos cadenas? ¿Qué debemos hacer si vamos a hacer una operación que implique concatenar muchas veces para construir paso a paso una cadena muy larga?
+
+Esta es una de las preguntas "clásicas" de examen en **PROII**, ya que entender cómo gestiona Java la memoria de los textos es fundamental para el rendimiento.
+
+###### 1. ¿Es `String` mutable o inmutable?
+
+La clase `String` en Java es **estrictamente inmutable**. Una vez que un objeto `String` se crea en la memoria (específicamente en una zona llamada *String Pool*), su contenido no puede cambiar jamás.
+
+###### 2. ¿Qué ocurre al concatenar dos cadenas?
+
+Cuando usas el operador `+` para concatenar, **no estás modificando** ninguna de las cadenas originales. Java realiza los siguientes pasos:
+
+1. Calcula el tamaño necesario para la nueva cadena.
+2. Crea un **nuevo objeto** `String` en la memoria.
+3. Copia los caracteres de la primera y la segunda cadena en el nuevo objeto.
+
+Si haces esto dentro de un bucle (por ejemplo, 1000 veces), estarás creando 1000 objetos temporales que el *Garbage Collector* (recolector de basura) tendrá que limpiar después, lo cual es muy ineficiente en términos de tiempo y memoria.
+
+###### 3. ¿Qué hacer para concatenaciones masivas?
+
+Si necesitas construir una cadena paso a paso (por ejemplo, leyendo un archivo grande o concatenando en un bucle `for`), **nunca** uses `String`. En su lugar, debes usar la clase **`StringBuilder`**.
+
+`StringBuilder` funciona como un "array dinámico" de caracteres (similar a un `std::vector<char>` en C++) que sí es **mutable**. Permite añadir texto sin crear objetos nuevos constantemente.
+
+###### Ejemplo comparativo:
+
+**Mal (Ineficiente):**
+
+```java
+String resultado = "";
+for (int i = 0; i < 1000; i++) {
+    resultado += "dato "; // Crea un objeto nuevo en cada iteración
+}
+
+```
+
+**Bien (Eficiente):**
+
+```java
+StringBuilder sb = new StringBuilder();
+for (int i = 0; i < 1000; i++) {
+    sb.append("dato "); // Modifica el buffer interno, no crea objetos nuevos
+}
+String resultado = sb.toString(); // Solo se crea el String final al terminar
+
+```
+
+---
+
+###### Resumen para tus apuntes:
+
+* **`String`**: Inmutable. Seguro para compartir (thread-safe), pero lento para modificaciones frecuentes.
+* **Concatenación (`+`)**: Crea objetos nuevos. Úsala solo para operaciones puntuales.
+* **`StringBuilder`**: Mutable. Úsalo siempre que vayas a construir cadenas en bucles o pasos sucesivos.
+* **`StringBuffer`**: Es igual que `StringBuilder` pero sincronizado (para entornos multi-hilo), aunque hoy en día se prefiere casi siempre `StringBuilder` por ser más rápido.
+
+
+
+##### 20. En POO ¿Cómo se comparan objetos de una misma clase? ¿Por su contenido o por su identidad? ¿Qué es el método equals en Java? ¿Qué hace por defecto? ¿Cómo se deben comparar dos cadenas en Java? 
+
+En Programación Orientada a Objetos, y específicamente en Java, la distinción entre **identidad** y **contenido** es el origen de muchos errores cuando vienes de C++.
+
+###### 1. ¿Identidad o Contenido?
+
+* **Identidad (Referencia):** Se refiere a si dos variables apuntan exactamente al mismo objeto en la memoria (la misma dirección). Se comprueba con el operador `==`.
+* **Contenido (Estado):** Se refiere a si dos objetos diferentes tienen los mismos valores en sus atributos. Se comprueba con el método `.equals()`.
+
+En Java, cuando comparas objetos con `==`, **siempre estás comparando identidades** (punteros), no el contenido.
+
+---
+
+###### 2. El método `equals` en Java
+
+Todos los objetos en Java heredan de la clase `Object`, la cual incluye el método `public boolean equals(Object obj)`. Su propósito es permitir que cada clase defina qué significa que dos de sus instancias sean "iguales".
+
+**¿Qué hace por defecto?**
+La implementación por defecto en la clase `Object` simplemente hace un `==`. Es decir, por defecto, **dos objetos solo son iguales si son el mismo objeto**.
+
+Si quieres que dos puntos con coordenadas $(5, 10)$ sean considerados iguales aunque vivan en posiciones de memoria distintas, **debes sobrescribir (`override`)** el método `equals` en tu clase `Punto`.
+
+---
+
+###### 3. ¿Cómo se deben comparar dos cadenas (Strings)?
+
+Debido a la inmutabilidad y al *String Pool*, usar `==` con cadenas es extremadamente peligroso porque a veces puede funcionar (si Java ha reutilizado la misma instancia) y a veces no.
+
+**Regla de oro:** Las cadenas en Java se comparan **siempre** con el método `.equals()`.
+
+* **MAL (Compara si son el mismo objeto):** `if (nombre == "Juan")`
+* **BIEN (Compara el texto):** `if (nombre.equals("Juan"))`
+* **IGNORANDO MAYÚSCULAS:** `if (nombre.equalsIgnoreCase("juan"))`
+
+---
+
+###### Ejemplo práctico para tu clase `Punto`
+
+Si quieres comparar tus puntos por su contenido (el array de coordenadas), tu `equals` debería verse así:
+
+```java
+@Override
+public boolean equals(Object obj) {
+    if (this == obj) return true; // Misma identidad
+    if (obj == null || getClass() != obj.getClass()) return false; // Tipos distintos
+    
+    Punto otro = (Punto) obj;
+    // Comparamos el contenido del array
+    return this.coordenadas[0] == otro.coordenadas[0] && 
+           this.coordenadas[1] == otro.coordenadas[1];
+}
+
+```
+
+> **Nota importante:** En Java, si sobrescribes `equals`, la buena práctica dicta que también debes sobrescribir `hashCode()`. Si no lo haces, tus objetos no funcionarán correctamente en colecciones como `HashMap`.
+
+
+
+##### 21. ¿Qué son las clases "wrapper" en un lenguaje de programación orientado a objetos? ¿Cómo se hace? ¿Es un proceso automático? ¿Qué ventajas tienen? ¿Todos los lenguajes orientados a objetos tienen tipos primitivos y necesitan wrappers? 
+
+Las clases **wrapper** (o clases envoltorio) son una solución para un dilema de diseño en Java: la existencia de tipos que no son objetos.
+
+###### 1. ¿Qué son y cómo se hace?
+
+En Java, existen **tipos primitivos** (como `int`, `double`, `boolean`) que se heredan del modelo de C por eficiencia. Sin embargo, Java es un lenguaje orientado a objetos donde muchas herramientas (como las colecciones `ArrayList`, `HashMap`, etc.) solo funcionan con **objetos**.
+
+Una clase wrapper es una clase que "envuelve" un valor primitivo dentro de un objeto.
+
+* Para `int`, el wrapper es `Integer`.
+* Para `double`, es `Double`.
+* Para `char`, es `Character`.
+
+###### 2. ¿Es un proceso automático?
+
+Sí, y tiene nombres específicos: **Autoboxing** y **Unboxing**.
+
+* **Autoboxing:** El paso automático de un primitivo a su clase wrapper.
+```java
+Integer numero = 10; // Java hace automáticamente: Integer.valueOf(10)
+
+```
+
+
+* **Unboxing:** El paso automático de un objeto wrapper a su valor primitivo.
+```java
+int n = numero; // Java hace automáticamente: numero.intValue()
+
+```
+
+
+
+###### 3. ¿Qué ventajas tienen?
+
+* **Colecciones:** No puedes crear un `ArrayList<int>`, pero sí un `ArrayList<Integer>`.
+* **Métodos de utilidad:** Las clases wrapper contienen métodos estáticos muy útiles para conversión de datos, como `Integer.parseInt("123")` o `Double.isNaN(valor)`.
+* **Valores nulos:** Un `int` siempre tiene un valor (por defecto 0), pero un `Integer` puede ser `null`. Esto es vital en bases de datos para representar la ausencia de un dato.
+* **Genéricos:** Son imprescindibles para trabajar con tipos genéricos (`<T>`), ya que estos requieren objetos.
+
+---
+
+###### 4. ¿Todos los lenguajes POO tienen tipos primitivos y necesitan wrappers?
+
+**No.** Aquí es donde Java se diferencia de otros lenguajes:
+
+* **Lenguajes Híbridos (como Java o C++):** Mantienen tipos primitivos por rendimiento (son mucho más rápidos y ocupan menos memoria que los objetos). Por eso Java necesita los wrappers como "puente".
+* **Lenguajes "Puros" (como Smalltalk, Ruby o Python):** En estos lenguajes, **todo es un objeto**. No existe el `int` como algo ajeno al sistema de objetos; hasta un número literal como `5` tiene métodos.
+* **C#:** Tiene una aproximación interesante llamada *Unified Type System*, donde los primitivos pueden comportarse como objetos sin necesidad de una clase wrapper explícita tan diferenciada como en Java.
+
+###### Resumen para tus apuntes
+
+| Tipo Primitivo | Clase Wrapper |
+| --- | --- |
+| `byte` | `Byte` |
+| `short` | `Short` |
+| `int` | `Integer` |
+| `long` | `Long` |
+| `float` | `Float` |
+| `double` | `Double` |
+| `char` | `Character` |
+| `boolean` | `Boolean` |
+
+> **Cuidado de programador:** Aunque el autoboxing es cómodo, abusar de él en bucles muy pesados puede ralentizar tu programa comparado con el uso de primitivos puros, debido a la creación constante de objetos.
+
+¿Te gustaría que viéramos cómo usar estos wrappers para convertir cadenas de texto que recibas por consola a números para tu clase `Punto`?
+
+
+##### 22. ¿En POO qué es un **tipo de dato enumerado**? ¿En Java, un tipo de dato enumerado es una clase? ¿Qué ventajas tienen en términos de encapsulación los enumerados en Java?
+
+Un **tipo de dato enumerado** (`enum`) es un tipo de dato especial que permite definir un conjunto de valores constantes y fijos. Se utiliza cuando sabemos de antemano todos los posibles valores que puede tomar una variable (por ejemplo: los días de la semana, los puntos cardinales o los estados de un pedido).
+
+###### 1. ¿En Java, un tipo de dato enumerado es una clase?
+
+**Sí, rotundamente.** A diferencia de C++, donde un `enum` es básicamente una lista de enteros (`int`), en Java un `enum` es una **clase especial**.
+
+Cuando defines un `enum`, Java crea una clase que hereda de `java.lang.Enum`. Esto significa que:
+
+* Puede tener **atributos** (campos).
+* Puede tener **métodos**.
+* Puede tener **constructores** (aunque siempre son privados).
+* Puede implementar interfaces.
+
+###### 2. Ventajas en términos de encapsulación
+
+Al ser clases completas, los enumerados en Java ofrecen ventajas de encapsulación que no existen en lenguajes más simples:
+
+* **Control de estado interno:** Puedes asociar datos a cada constante de forma protegida. Por ejemplo, un enumerado `Color` puede guardar internamente su código hexadecimal y exponerlo mediante un "getter", pero no permitir que se cambie.
+* **Validación de tipos (Type Safety):** No puedes asignar un valor que no esté definido en el `enum`. El compilador garantiza que la variable solo contenga uno de los valores permitidos, evitando estados inconsistentes en el objeto.
+* **Comportamiento asociado:** Puedes definir métodos abstractos dentro del `enum` que cada constante debe implementar de forma distinta. Esto encapsula la lógica específica de cada valor dentro del propio valor, evitando estructuras `if-else` o `switch` dispersas por todo el código.
+* **Sintaxis limpia:** Permite ocultar la complejidad de la configuración de una constante detrás de un nombre sencillo (ej. `Estado.CANCELADO`).
+
+---
+
+###### Ejemplo práctico: Enumerado con lógica
+
+Imagina que en tu proyecto necesitas definir los ejes de coordenadas:
+
+```java
+public enum Eje {
+    X("Horizontal"), 
+    Y("Vertical");
+
+    private final String descripcion; // Atributo encapsulado
+
+    // Constructor privado (Java no permite que sea público)
+    Eje(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+}
+
+```
+
+###### Notas para tus apuntes de C++ a Java:
+
+1. **Comparación:** En Java puedes usar `==` para comparar enumerados de forma segura, ya que las instancias son únicas (Singleton).
+2. **Iteración:** Todos los `enum` en Java tienen el método estático `.values()`, que devuelve un array con todas las constantes, facilitando mucho el recorrido.
+3. **Orden:** Tienen un método `.ordinal()` que indica su posición, pero se recomienda no usarlo para lógica de negocio para evitar errores si cambias el orden de los elementos.
+
+
+
+##### 23. Crea un tipo enumerado en Java que se llame `Mes`, con doce posibles instancias y que además proporcione métodos para obtener cuántos días tiene ese mes, el ordinal de ese mes en el año (1-12), empleando atributos privados y constructores del tipo enumerado. Añade además cuatro métodos para devolver si ese mes tiene algunos días de invierno, primavera, verano u otoño, indicando con un booleano el hemisferio (norte o sur, parámetro `enHemisferioNorte`). Es decir: `esDePrimavera(boolean esHemisferioNorte)`, `esDeVerano(boolean esHemisferioNorte)`, `esDeOtoño(boolean esHemisferioNorte)`, `esDeInvierno(boolean esHemisferioNorte)`
+
+Para implementar este enumerado en Java, aprovecharemos que los `enum` pueden tener constructores y atributos privados, comportándose casi como una clase normal.
+
+Aquí tienes la implementación completa para tus apuntes:
+
+```java
+public enum Mes {
+    ENERO(31, 1), FEBRERO(28, 2), MARZO(31, 3), ABRIL(30, 4),
+    MAYO(31, 5), JUNIO(30, 6), JULIO(31, 7), AGOSTO(31, 8),
+    SEPTIEMBRE(30, 9), OCTUBRE(31, 10), NOVIEMBRE(30, 11), DICIEMBRE(31, 12);
+
+    private final int dias;
+    private final int orden;
+
+    // El constructor de un enum siempre es privado o paquete-privado
+    Mes(int dias, int orden) {
+        this.dias = dias;
+        this.orden = orden;
+    }
+
+    public int getDias() {
+        return this.dias;
+    }
+
+    public int getOrden() {
+        return this.orden;
+    }
+
+    // Métodos de estación con lógica de hemisferio
+    
+    public boolean esDePrimavera(boolean enHemisferioNorte) {
+        if (enHemisferioNorte) {
+            // Norte: Marzo, Abril, Mayo, Junio
+            return orden >= 3 && orden <= 6;
+        } else {
+            // Sur: Septiembre, Octubre, Noviembre, Diciembre
+            return orden >= 9 && orden <= 12;
+        }
+    }
+
+    public boolean esDeVerano(boolean enHemisferioNorte) {
+        if (enHemisferioNorte) {
+            // Norte: Junio, Julio, Agosto, Septiembre
+            return orden >= 6 && orden <= 9;
+        } else {
+            // Sur: Diciembre, Enero, Febrero, Marzo
+            return orden == 12 || (orden >= 1 && orden <= 3);
+        }
+    }
+
+    public boolean esDeOtoño(boolean enHemisferioNorte) {
+        if (enHemisferioNorte) {
+            // Norte: Septiembre, Octubre, Noviembre, Diciembre
+            return orden >= 9 && orden <= 12;
+        } else {
+            // Sur: Marzo, Abril, Mayo, Junio
+            return orden >= 3 && orden <= 6;
+        }
+    }
+
+    public boolean esDeInvierno(boolean enHemisferioNorte) {
+        if (enHemisferioNorte) {
+            // Norte: Diciembre, Enero, Febrero, Marzo
+            return orden == 12 || (orden >= 1 && orden <= 3);
+        } else {
+            // Sur: Junio, Julio, Agosto, Septiembre
+            return orden >= 6 && orden <= 9;
+        }
+    }
+}
+
+```
+
+###### Notas técnicas para PROII:
+
+* **Atributos `final**`: Como los enumerados representan constantes, es una excelente práctica declarar sus atributos como `final` para garantizar la inmutabilidad.
+* **Lógica de estaciones**: He simplificado la lógica considerando los meses completos donde hay presencia de esa estación (por ejemplo, Junio tiene días de Primavera y de Verano en el norte).
+* **Constructor**: Fíjate que al invocar `ENERO(31, 1)`, Java busca automáticamente el constructor que coincida con esos argumentos. No se usa la palabra `new`.
+* **Diferencia con C++**: En C++ tendrías que usar un `switch` externo o un mapa para obtener los días; en Java, el dato viaja "pegado" a la constante.
+
