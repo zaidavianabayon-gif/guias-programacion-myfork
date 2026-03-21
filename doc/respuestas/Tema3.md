@@ -603,35 +603,607 @@ Existen situaciones extremas, ajenas a la lógica del lenguaje, donde el `finall
 
 ##### 11. En Java, qué son las excepciones **"controladas"** y las **"no controladas"**? ¿Qué papel juega `RuntimeException`? Pon un ejemplo de excepciones típicas controladas y no controladas que incluso nosotros mismos podríamos usar. Haz dos listas con 3 o 4 ejemplos de situación donde se suele preferir una excepción controlada y donde se suele preferir una excepción no controlada.
 
+Aquí tienes una versión limpia para apuntes:
+
+---
+
+## Excepciones en Java
+
+### 1. Excepciones controladas (checked)
+
+Son aquellas que el compilador obliga a manejar.
+Es necesario capturarlas con `try-catch` o declararlas con `throws`.
+
+Se utilizan cuando el error es previsible y el programa puede recuperarse.
+
+Ejemplos típicos:
+
+* `IOException`
+* `SQLException`
+* `FileNotFoundException`
+
+Ejemplo:
+
+```java
+public void leerArchivo(String ruta) throws IOException {
+    FileReader fr = new FileReader(ruta);
+}
+```
+
+---
+
+### 2. Excepciones no controladas (unchecked)
+
+No es obligatorio manejarlas.
+Ocurren en tiempo de ejecución y suelen indicar errores de programación.
+
+Ejemplos típicos:
+
+* `NullPointerException`
+* `ArrayIndexOutOfBoundsException`
+* `IllegalArgumentException`
+
+Ejemplo:
+
+```java
+String texto = null;
+texto.length(); // NullPointerException
+```
+
+---
+
+### 3. Papel de RuntimeException
+
+`RuntimeException` es la clase base de las excepciones no controladas.
+
+* Si una excepción hereda de `Exception` → es controlada
+* Si hereda de `RuntimeException` → es no controlada
+
+Ejemplo:
+
+```java
+// No controlada
+class MiErrorRuntime extends RuntimeException {
+    public MiErrorRuntime(String mensaje) {
+        super(mensaje);
+    }
+}
+
+// Controlada
+class MiErrorChecked extends Exception {
+    public MiErrorChecked(String mensaje) {
+        super(mensaje);
+    }
+}
+```
+
+---
+
+### 4. Cuándo usar cada tipo
+
+#### Usar excepciones controladas cuando:
+
+* Se trabaja con archivos
+* Se accede a bases de datos
+* Se hacen llamadas a servicios externos
+* El error es esperado y se puede gestionar
+
+#### Usar excepciones no controladas cuando:
+
+* Hay errores de programación (null, índices, etc.)
+* Los parámetros son inválidos
+* El estado del programa es incorrecto
+* No tiene sentido forzar al llamador a manejar el error
+
+---
+
+### 5. Resumen
+
+* Checked: obligatorias, errores recuperables
+* Unchecked: opcionales, errores de lógica o programación
+
+
+
+##### 12. ¿Qué es y para qué se usa `throws`? ¿Por qué es alternativa a capturar una excepción controlada?
+
+## 12. ¿Qué es y para qué se usa `throws`?
+
+`throws` es una palabra clave que se usa en la **firma de un método** para indicar que ese método puede lanzar una o varias excepciones.
+
+No maneja la excepción, solo **la declara y la propaga** hacia quien llame al método.
+
+Ejemplo:
+
+```java
+public void leerArchivo(String ruta) throws IOException {
+    FileReader fr = new FileReader(ruta);
+}
+```
+
+Aquí el método no captura la excepción, sino que avisa:
+“oye, si llamas a esto, tú te encargas del problema”.
+
+---
+
+## ¿Para qué se usa?
+
+Se usa para:
+
+* Indicar claramente qué errores pueden ocurrir
+* Delegar la responsabilidad al método que llama
+* Evitar capturar excepciones en niveles donde no tiene sentido hacerlo
+
+---
+
+## ¿Por qué es alternativa a capturar una excepción controlada?
+
+Porque en Java, las excepciones controladas tienen dos opciones obligatorias:
+
+1. Capturarlas con `try-catch`
+2. Declararlas con `throws`
+
+Ejemplo comparando ambas:
+
+### Opción 1: capturar
+
+```java
+public void leerArchivo(String ruta) {
+    try {
+        FileReader fr = new FileReader(ruta);
+    } catch (IOException e) {
+        System.out.println("Error al leer archivo");
+    }
+}
+```
+
+### Opción 2: propagar con throws
+
+```java
+public void leerArchivo(String ruta) throws IOException {
+    FileReader fr = new FileReader(ruta);
+}
+```
+
+---
+
+## Idea clave
+
+* `try-catch` → manejas el error aquí
+* `throws` → pasas el problema hacia arriba
+
+---
+
+## Cuándo usar `throws`
+
+* Cuando el método no sabe cómo resolver el error
+* Cuando quieres que otro nivel (por ejemplo, el `main` o una capa superior) decida qué hacer
+* Cuando estás diseñando APIs y quieres obligar a quien use tu método a tener en cuenta el error
+
+---
 
 
 
 
-## 12. ¿Qué es y para qué se usa `throws`? ¿Por qué es alternativa a capturar una excepción controlada?
 
-### Respuesta
+#### 13. Pon un ejemplo en Java de firma de método que incluya `throws`, de una función que abre un fichero pero que declara que no le interesa menejar la excepción de si el fichero no existe, sino que se propague hacia arriba. Eso sí, acuérdate del `finally`.
+
+Aquí tienes un ejemplo claro y típico para apuntes:
+
+## Ejemplo de método con `throws` y `finally`
+
+Este método intenta abrir un fichero, pero **no maneja la excepción** (`FileNotFoundException`), sino que la **propaga hacia arriba** con `throws`.
+
+```java
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileNotFoundException;
+
+public void abrirFichero(String ruta) throws FileNotFoundException {
+    FileReader fr = null;
+
+    try {
+        fr = new FileReader(new File(ruta));
+        System.out.println("Fichero abierto correctamente");
+    } finally {
+        System.out.println("Bloque finally ejecutado");
+        
+        // Cierre del recurso si se llegó a abrir
+        if (fr != null) {
+            try {
+                fr.close();
+            } catch (Exception e) {
+                // Ignorado o tratado de forma simple
+            }
+        }
+    }
+}
+```
+
+---
+
+## Idea clave del ejemplo
+
+* `throws FileNotFoundException` → el método **no gestiona el error**, lo delega
+* `try` → intenta abrir el fichero
+* `finally` → se ejecuta siempre, haya error o no
+* El `finally` se usa para **liberar recursos** (cerrar el fichero)
+
+---
+
+## Importante
+
+Aunque la excepción se propague:
+
+* El `finally` **siempre se ejecuta**
+* Sirve para evitar fugas de recursos (archivos abiertos, conexiones, etc.)
+
+---
+
+Si quisieras manejar la excepción, usarías `catch`, pero aquí justamente se evita para dejar que otro método decida qué hacer.
 
 
-## 13. Pon un ejemplo en Java de firma de método que incluya `throws`, de una función que abre un fichero pero que declara que no le interesa menejar la excepción de si el fichero no existe, sino que se propague hacia arriba. Eso sí, acuérdate del `finally`.
 
-### Respuesta
+#### 14. ¿Podemos poner en `throws` excepciones no controladas, como `RuntimeException`? ¿Debería el método llamador entonces poner `try-catch` en ese caso? ¿Qué sentido tendría?
+
+## 14. Excepciones no controladas y `throws`
+
+### ¿Se pueden poner excepciones no controladas en `throws`?
+
+Sí, se puede. No hay ninguna restricción.
+
+Ejemplo:
+
+```java
+public void metodo(int x) throws IllegalArgumentException {
+    if (x < 0) {
+        throw new IllegalArgumentException("Valor negativo");
+    }
+}
+```
+
+Pero **no es obligatorio** hacerlo, porque las excepciones no controladas (las que heredan de `RuntimeException`) no requieren ser declaradas.
+
+---
+
+### ¿Debe el método llamador usar `try-catch`?
+
+No es obligatorio.
+
+El llamador puede:
+
+* Capturar la excepción con `try-catch`
+* O no hacer nada y dejar que el programa falle
+
+Ejemplo sin capturar:
+
+```java
+metodo(-1); // Puede lanzar IllegalArgumentException
+```
+
+Ejemplo capturando:
+
+```java
+try {
+    metodo(-1);
+} catch (IllegalArgumentException e) {
+    System.out.println("Error en el argumento");
+}
+```
+
+---
+
+### ¿Qué sentido tiene usar `throws` con excepciones no controladas?
+
+Principalmente tiene un valor **documentativo**, no funcional.
+
+Sirve para:
+
+* Indicar claramente qué errores puede lanzar el método
+* Mejorar la legibilidad del código
+* Ayudar a quien usa el método a entender posibles fallos
+
+Pero:
+
+* No obliga a nadie a capturarlas
+* No cambia el comportamiento del programa
+
+---
+
+### Idea clave
+
+* Con excepciones **checked** → `throws` es obligatorio si no capturas
+* Con excepciones **unchecked** → `throws` es opcional y solo informativo
+
+---
+
+### Resumen
+
+* Sí, puedes usar `throws` con `RuntimeException`
+* No obliga al llamador a usar `try-catch`
+* Su utilidad es principalmente aclarar el contrato del método
 
 
-## 14. ¿Podemos poner en `throws` excepciones no controladas, como `RuntimeException`? ¿Debería el método llamador entonces poner `try-catch` en ese caso? ¿Qué sentido tendría?
 
-### Respuesta
+#### 15. ¿Cuándo se recomienda usar excepciones controladas, como `IOException`, y cuándo no controladas como `IllegalArgumentException`? ¿Existen en todos los lenguajes ambas opciones? En los que sólo existe una opción, ¿cuál es la más habitual?
 
+## 15. ¿Cuándo usar excepciones controladas y no controladas?
 
-## 15. ¿Cuándo se recomienda usar excepciones controladas, como `IOException`, y cuándo no controladas como `IllegalArgumentException`? ¿Existen en todos los lenguajes ambas opciones? En los que sólo existe una opción, ¿cuál es la más habitual?
+### Uso de excepciones controladas (checked, como `IOException`)
 
-### Respuesta
+Se recomiendan cuando:
+
+* El error es **esperable**
+* El error depende de factores externos (archivo, red, base de datos)
+* El programa **puede recuperarse**
+* Quieres **forzar** a quien llama al método a manejar el error
+
+Ejemplos típicos:
+
+* Leer un fichero que puede no existir
+* Conexión a base de datos
+* Llamadas a APIs externas
+
+---
+
+### Uso de excepciones no controladas (unchecked, como `IllegalArgumentException`)
+
+Se recomiendan cuando:
+
+* El error es un **fallo de programación**
+* El problema no debería ocurrir si el código está bien hecho
+* No tiene sentido obligar al llamador a manejarlo
+* El error suele ser **irrecuperable o indica bug**
+
+Ejemplos típicos:
+
+* Pasar argumentos inválidos
+* Acceder a índices fuera de rango
+* Uso de `null` incorrecto
+
+---
+
+## Idea general
+
+* **Checked** → errores externos y recuperables
+* **Unchecked** → errores internos y de lógica
+
+---
+
+## ¿Existen en todos los lenguajes?
+
+No.
+
+Java es de los pocos lenguajes que tiene esta distinción **tan estricta a nivel de compilador**.
+
+---
+
+## ¿Qué pasa en lenguajes con una sola opción?
+
+En la mayoría de lenguajes modernos (como C#, Python, JavaScript):
+
+* Todas las excepciones son equivalentes a las **no controladas**
+* No es obligatorio declararlas ni capturarlas
+
+---
+
+## ¿Cuál es la opción más habitual hoy en día?
+
+La más habitual es el modelo de **excepciones no controladas**.
+
+Motivos:
+
+* Menos código repetitivo
+* Más flexibilidad
+* Menos “ruido” en las firmas de métodos
+
+---
+
+## Resumen
+
+* Checked → errores esperables, obligan a manejar
+* Unchecked → errores de programación, no obligan
+* No todos los lenguajes tienen ambas
+* Hoy en día predomina el modelo tipo `RuntimeException`
+
 
 
 ## 16. ¿Tiene sentido lanzar excepciones dentro del `catch`? ¿Se puede relanzar la misma excepción capturada? ¿Cuándo tendría sentido hacer esto último? Pon ejemplos de ambos casos.
 
-### Respuesta
+## 16. Excepciones dentro de `catch`
+
+### ¿Tiene sentido lanzar excepciones dentro de un `catch`?
+
+Sí, tiene sentido.
+
+Se hace cuando:
+
+* Quieres **transformar** una excepción en otra más adecuada
+* Quieres **añadir contexto** (mensaje más claro)
+* Tu método no puede manejar realmente el error
+
+Ejemplo (transformar excepción):
+
+```java
+import java.io.*;
+
+public void procesarFichero(String ruta) throws MiExcepcion {
+    try {
+        FileReader fr = new FileReader(ruta);
+    } catch (FileNotFoundException e) {
+        throw new MiExcepcion("No se pudo procesar el fichero: " + ruta);
+    }
+}
+
+class MiExcepcion extends Exception {
+    public MiExcepcion(String mensaje) {
+        super(mensaje);
+    }
+}
+```
+
+---
+
+### ¿Se puede relanzar la misma excepción capturada?
+
+Sí, se puede.
+
+Simplemente se usa `throw e;`
+
+Ejemplo:
+
+```java
+import java.io.*;
+
+public void leer(String ruta) throws IOException {
+    try {
+        FileReader fr = new FileReader(ruta);
+    } catch (IOException e) {
+        System.out.println("Error al leer");
+        throw e; // relanza la misma excepción
+    }
+}
+```
+
+---
+
+### ¿Cuándo tiene sentido relanzar la misma excepción?
+
+Se hace cuando:
+
+* Quieres **registrar (log)** el error pero no manejarlo
+* Necesitas ejecutar alguna acción (limpieza, métricas, etc.)
+* No puedes resolver el problema en ese nivel
+
+Ejemplo típico (log + relanzar):
+
+```java
+public void metodo() throws IOException {
+    try {
+        hacerAlgo();
+    } catch (IOException e) {
+        System.out.println("Log del error: " + e.getMessage());
+        throw e; // se propaga hacia arriba
+    }
+}
+```
+
+---
+
+### Idea importante
+
+* Lanzar una nueva excepción → cambias el tipo o añades contexto
+* Relanzar la misma → haces algo extra pero no la gestionas
+
+---
+
+### Buen detalle (recomendado)
+
+Cuando creas una nueva excepción, es buena práctica **encadenar la original**:
+
+```java
+throw new MiExcepcion("Error procesando fichero", e);
+```
+
+Así no pierdes la información original del error.
+
+---
+
+## Resumen
+
+* Sí, puedes lanzar excepciones en `catch`
+* Sí, puedes relanzar la misma con `throw e`
+* Se hace para añadir contexto, transformar errores o registrar información sin resolverlos
+
 
 
 ## 17. ¿En qué consiste que una excepción sea la **"causa"** de otra excepción? Pon un ejemplo en Java, donde capturemos una excepción de bajo nivel y la encapsulemos en otra personalizada de alto nivel. Cuando una excepción sale por pantalla y tiene una causa, ¿se ve?
 
-### Respuesta
+## 17. Excepción como "causa" de otra
+
+### ¿En qué consiste?
+
+Que una excepción sea la **causa** de otra significa que:
+
+* Una excepción original (de bajo nivel) provoca otra excepción (de más alto nivel)
+* La nueva excepción **envuelve** a la anterior
+* Se mantiene la información del error original
+
+Esto se llama **encadenamiento de excepciones**.
+
+---
+
+### ¿Para qué sirve?
+
+* No perder información del error original
+* Abstraer detalles internos (por ejemplo, de ficheros o base de datos)
+* Dar mensajes más claros a niveles superiores
+
+---
+
+### Ejemplo en Java
+
+Capturamos una excepción de bajo nivel (`IOException`) y la encapsulamos en una excepción propia:
+
+```java id="1t87x0"
+import java.io.*;
+
+public void procesar(String ruta) throws MiExcepcion {
+    try {
+        FileReader fr = new FileReader(ruta);
+    } catch (IOException e) {
+        throw new MiExcepcion("Error procesando el fichero", e);
+    }
+}
+
+class MiExcepcion extends Exception {
+    public MiExcepcion(String mensaje, Throwable causa) {
+        super(mensaje, causa); // aquí se establece la causa
+    }
+}
+```
+
+---
+
+### ¿Qué está pasando aquí?
+
+* `IOException` → error real (bajo nivel)
+* `MiExcepcion` → error más abstracto (alto nivel)
+* `e` se pasa como **causa** usando `super(mensaje, causa)`
+
+---
+
+### ¿Se ve la causa al mostrar la excepción?
+
+Sí.
+
+Cuando se imprime la excepción (por ejemplo, con `printStackTrace()`), Java muestra:
+
+* La excepción principal
+* Y debajo, la causa con el mensaje `Caused by`
+
+Ejemplo de salida:
+
+```
+MiExcepcion: Error procesando el fichero
+    at ...
+Caused by: java.io.FileNotFoundException: fichero.txt (No such file)
+    at ...
+```
+
+---
+
+### Idea clave
+
+* La “causa” es la excepción original
+* Permite mantener trazabilidad del error
+* Se usa pasando la excepción original al constructor
+
+---
+
+### Resumen
+
+* Una excepción puede envolver a otra como causa
+* Se usa `super(mensaje, causa)`
+* La causa sí aparece al imprimir el error
+* Es una práctica recomendable para no perder información
+
